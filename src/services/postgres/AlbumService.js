@@ -2,21 +2,21 @@ const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const { mapDBToModelAlbum } = require('../../utils');
+const { mapDBToModelAlbum, mapDBToModelAlbumSimple } = require('../../api/albums/entityAlbum');
 
 class AlbumService {
   constructor() {
     this._pool = new Pool();
   }
 
-  async addAlbum({ name, year }) {
+  async addAlbum(payloadData) {
     const id = nanoid(16);
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 
     const query = {
       text: 'INSERT INTO albums VALUES($1, $2, $3, $4, $5) RETURNING id',
-      values: [id, name, year, createdAt, updatedAt],
+      values: [id, payloadData.name, payloadData.year, createdAt, updatedAt],
     };
 
     const result = await this._pool.query(query);
@@ -30,7 +30,7 @@ class AlbumService {
 
   async getAlbums() {
     const result = await this._pool.query('SELECT * FROM albums');
-    return result.rows.map(mapDBToModelAlbum);
+    return result.rows.map(mapDBToModelAlbumSimple);
   }
 
   async getAlbumById(id) {
@@ -47,11 +47,11 @@ class AlbumService {
     return result.rows.map(mapDBToModelAlbum)[0];
   }
 
-  async editAlbumById(id, { name, year }) {
+  async editAlbumById(id, payloadData) {
     const updateAt = new Date().toISOString();
     const query = {
       text: 'UPDATE albums SET name=$1, year=$2, updated_at=$3 WHERE id=$4 RETURNING id',
-      values: [name, year, updateAt, id],
+      values: [payloadData.name, payloadData.year, updateAt, id],
     };
 
     const result = await this._pool.query(query);

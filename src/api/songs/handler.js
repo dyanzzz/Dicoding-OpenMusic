@@ -1,4 +1,5 @@
 const ClientError = require('../../exceptions/ClientError');
+const { mapModelToDBSong } = require('./entitySong');
 
 class SongHandler {
   constructor(service, validator) {
@@ -15,7 +16,7 @@ class SongHandler {
   async postSongHandler(request, h) {
     try {
       this._validator.validateSongPayload(request.payload);
-      const payloadData = request.payload;
+      const payloadData = mapModelToDBSong(request.payload);
       const songId = await this._service.addSong(payloadData);
 
       const response = h.response({
@@ -98,7 +99,7 @@ class SongHandler {
     try {
       this._validator.validateSongPayload(request.payload);
       const { id } = request.params;
-      const payloadData = request.payload;
+      const payloadData = mapModelToDBSong(request.payload);
 
       await this._service.editSongById(id, payloadData);
 

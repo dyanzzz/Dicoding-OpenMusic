@@ -1,4 +1,5 @@
 const ClientError = require('../../exceptions/ClientError');
+const { mapDBToModelAlbum } = require('./entityAlbum');
 
 class AlbumHandler {
   constructor(service, validator) {
@@ -15,8 +16,9 @@ class AlbumHandler {
   async postAlbumHandler(request, h) {
     try {
       this._validator.validateAlbumPayload(request.payload);
-      const { name, year } = request.payload;
-      const albumId = await this._service.addAlbum({ name, year });
+      const payloadData = mapDBToModelAlbum(request.payload);
+
+      const albumId = await this._service.addAlbum(payloadData);
 
       const response = h.response({
         status: 'success',
@@ -98,9 +100,9 @@ class AlbumHandler {
     try {
       this._validator.validateAlbumPayload(request.payload);
       const { id } = request.params;
-      const { name, year } = request.payload;
+      const payloadData = mapDBToModelAlbum(request.payload);
 
-      await this._service.editAlbumById(id, { name, year });
+      await this._service.editAlbumById(id, payloadData);
 
       return {
         status: 'success',
