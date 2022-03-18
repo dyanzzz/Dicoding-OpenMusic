@@ -3,6 +3,7 @@ const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const { mapDBToModelAlbum, mapDBToModelAlbumSimple } = require('../../api/albums/entityAlbum');
+const { mapDBToModelSongInAlbum } = require('../../api/songs/entitySong');
 
 class AlbumService {
   constructor() {
@@ -35,7 +36,7 @@ class AlbumService {
 
   async getAlbumById(id) {
     const query = {
-      text: 'SELECT * FROM albums WHERE id=$1',
+      text: 'SELECT a.id, a.name, a.year, a.created_at, a.updated_at, s.id as id_song, s.title, s.year as year_song, s.genre, s.performer, s.duration, s.album_id FROM albums a, songs s where a.id=$1 and a.id=s.album_id',
       values: [id],
     };
     const result = await this._pool.query(query);
@@ -44,7 +45,11 @@ class AlbumService {
       throw new NotFoundError('Album Not Found');
     }
 
-    return result.rows.map(mapDBToModelAlbum)[0];
+    const album = result.rows.map(mapDBToModelAlbum)[0];
+    const songs = result.rows.map(mapDBToModelSongInAlbum);
+    album.songs = songs;
+
+    return album;
   }
 
   async editAlbumById(id, payloadData) {
