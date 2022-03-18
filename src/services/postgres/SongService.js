@@ -28,8 +28,13 @@ class SongService {
     return result.rows[0].id;
   }
 
-  async getSongs() {
-    const result = await this._pool.query('SELECT * FROM songs');
+  async getSongs(payloadData) {
+    const query = {
+      text: "SELECT * FROM songs WHERE LOWER(title) LIKE LOWER(CONCAT('%',COALESCE($1, ''), '%')) AND LOWER(performer) LIKE LOWER(CONCAT('%',COALESCE($2, ''),'%'))",
+      values: [payloadData.title, payloadData.performer],
+    };
+
+    const result = await this._pool.query(query);
     return result.rows.map(mapDBToModelSongSimple);
   }
 

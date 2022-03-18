@@ -51,15 +51,37 @@ class SongHandler {
     }
   }
 
-  async getSongsHandler() {
-    const songs = await this._service.getSongs();
+  async getSongsHandler(request, h) {
+    try {
+      const payloadData = mapModelToDBSong(request.query);
+      const songs = await this._service.getSongs(payloadData);
 
-    return {
-      status: 'success',
-      data: {
-        songs,
-      },
-    };
+      return {
+        status: 'success',
+        data: {
+          songs,
+        },
+      };
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message,
+        });
+
+        response.code(error.statusCode);
+        return response;
+      }
+
+      const response = h.response({
+        status: 'fail',
+        message: 'Sorry, Server error',
+      });
+
+      response.code(500);
+      console.log(error);
+      return response;
+    }
   }
 
   async getSongByIdHandler(request, h) {
