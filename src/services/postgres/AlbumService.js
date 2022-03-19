@@ -36,7 +36,7 @@ class AlbumService {
 
   async getAlbumById(id) {
     const query = {
-      text: 'SELECT a.id, a.name, a.year, a.created_at, a.updated_at, s.id as id_song, s.title, s.year as year_song, s.genre, s.performer, s.duration, s.album_id FROM albums a, songs s where a.id=$1 and a.id=s.album_id',
+      text: 'SELECT * FROM albums WHERE id=$1',
       values: [id],
     };
     const result = await this._pool.query(query);
@@ -45,8 +45,14 @@ class AlbumService {
       throw new NotFoundError('Album Not Found');
     }
 
+    const querySong = {
+      text: 'SELECT * FROM songs WHERE album_id=$1',
+      values: [result.rows[0].id],
+    };
+    const resultSong = await this._pool.query(querySong);
+
     const album = result.rows.map(mapDBToModelAlbum)[0];
-    const songs = result.rows.map(mapDBToModelSongInAlbum);
+    const songs = resultSong.rows.map(mapDBToModelSongInAlbum);
     album.songs = songs;
 
     return album;
