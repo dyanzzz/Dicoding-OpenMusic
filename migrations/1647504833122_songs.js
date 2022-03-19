@@ -8,7 +8,7 @@ exports.up = (pgm) => {
       type: 'VARCHAR(50)',
       primaryKey: true,
     },
-    name: {
+    title: {
       type: 'VARCHAR(100)',
       notNull: true,
     },
@@ -28,7 +28,7 @@ exports.up = (pgm) => {
       type: 'INTEGER',
       notNull: false,
     },
-    albumId: {
+    album_id: {
       type: 'VARCHAR(50)',
       notNull: false,
       foreignKeys: true,
