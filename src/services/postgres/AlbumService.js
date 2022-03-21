@@ -11,7 +11,7 @@ class AlbumService {
   }
 
   async addAlbum(payloadData) {
-    const id = nanoid(16);
+    const id = `album-${nanoid(16)}`;
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 

@@ -10,7 +10,7 @@ class SongService {
   }
 
   async addSong(payloadData) {
-    const id = nanoid(16);
+    const id = `song-${nanoid(16)}`;
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
 
