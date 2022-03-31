@@ -1,10 +1,9 @@
 const { mapToModelUser } = require('../users/entityUser');
-const { mapToModelAuthentication } = require('./entityAuthentication');
 
 class AuthenticationsHandler {
   constructor(service, tokenManager, validator) {
-    this._authenticationService = service.authenticationService;
-    this._userService = service.userService;
+    this._authenticationService = service.authentications;
+    this._userService = service.user;
     this._tokenManager = tokenManager;
     this._validator = validator;
 
@@ -40,9 +39,9 @@ class AuthenticationsHandler {
   async putAuthenticationHandler(request) {
     this._validator.validatePutAuthenticationPayload(request.payload);
 
-    const payloadData = mapToModelAuthentication(request.payload);
-    await this._authenticationService.verifyRefreshToken(payloadData);
-    const { id } = this._tokenManager.verifyRefreshToken(payloadData);
+    const { refreshToken } = request.payload;
+    await this._authenticationService.verifyRefreshToken(refreshToken);
+    const { id } = this._tokenManager.verifyRefreshToken(refreshToken);
 
     const accessToken = this._tokenManager.generateAccessToken({ id });
     return {
@@ -57,9 +56,9 @@ class AuthenticationsHandler {
   async deleteAuthenticationHandler(request) {
     this._validator.validateDeleteAuthenticationPayload(request.payload);
 
-    const payloadData = mapToModelAuthentication(request.payload);
-    await this._authenticationService.verifyRefreshToken(payloadData);
-    await this._authenticationService.deleteRefreshToken(payloadData);
+    const { refreshToken } = request.payload;
+    await this._authenticationService.verifyRefreshToken(refreshToken);
+    await this._authenticationService.deleteRefreshToken(refreshToken);
 
     return {
       status: 'success',

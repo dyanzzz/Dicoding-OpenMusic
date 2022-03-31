@@ -15,10 +15,10 @@ class AuthenticationService {
     await this._pool.query(query);
   }
 
-  async verifyRefreshToken(payloadData) {
+  async verifyRefreshToken(token) {
     const query = {
       text: 'SELECT * FROM authentications WHERE token=$1',
-      values: [payloadData.token],
+      values: [token],
     };
 
     const result = await this._pool.query(query);
@@ -28,10 +28,10 @@ class AuthenticationService {
     }
   }
 
-  async deleteRefreshToken(payloadData) {
+  async deleteRefreshToken(token) {
     const query = {
       text: 'DELETE FROM authentications WHERE token=$1',
-      values: [payloadData.token],
+      values: [token],
     };
 
     await this._pool.query(query);
