@@ -1,4 +1,4 @@
-const { mapDBToModelUser } = require('./entityUser');
+const { mapToModelUser } = require('./entityUser');
 
 class UsersHandler {
   constructor(service, validator) {
@@ -10,7 +10,7 @@ class UsersHandler {
 
   async postUserHandler(request, h) {
     this._validator.validateUserPayload(request.payload);
-    const payloadData = mapDBToModelUser(request.payload);
+    const payloadData = mapToModelUser(request.payload);
 
     const userId = await this._service.addUser(payloadData);
 

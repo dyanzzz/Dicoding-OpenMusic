@@ -13,6 +13,21 @@
     "rules": {
         "no-console": "off",
         "max-len": 0,
-        "no-underscore-dangle": ["error", { "allow": ["_notes", "_service", "_validator", "_pool"] }]
+        "no-underscore-dangle": [
+            "error", {
+                "allow": [
+                    "_notes",
+                    "_service",
+                    "_validator",
+                    "_pool",
+                    "_authenticationService",
+                    "_userService",
+                    "_tokenManager",
+                    "_collaborationService",
+                    "_collaborationsService",
+                    "_notesService"
+                ]
+            }
+        ]
     }
 }

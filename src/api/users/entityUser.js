@@ -1,4 +1,4 @@
-const mapDBToModelUser = ({
+const mapToModelUser = ({
   username,
   password,
   fullname,
@@ -9,5 +9,5 @@ const mapDBToModelUser = ({
 });
 
 module.exports = {
-  mapDBToModelUser,
+  mapToModelUser,
 };
