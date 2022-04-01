@@ -92,7 +92,7 @@ class UsersService {
     const result = await this._pool.query(query);
 
     if (!result.rows.length) {
-      throw new NotFoundError('User tidak ditemukan');
+      throw new NotFoundError('Playlist tidak ditemukan');
     }
 
     const playlist = result.rows[0];
@@ -100,6 +100,8 @@ class UsersService {
     if (playlist.owner !== userId) {
       throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
     }
+
+    return playlist.id;
   }
 
   async verifyUserAccess(name, owner) {

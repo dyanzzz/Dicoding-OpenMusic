@@ -26,6 +26,23 @@ class PlaylistService {
     return result.rows[0].id;
   }
 
+  async addPlaylistSong(payloadData) {
+    const id = nanoid(16);
+
+    const query = {
+      text: 'INSERT INTO playlistsongs VALUES($1, $2, $3) RETURNING id',
+      values: [id, payloadData.playlistId, payloadData.songId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new InvariantError('Input Playlist Song Failed');
+    }
+
+    return result.rows[0].id;
+  }
+
   async getPlaylists(userId) {
     console.log(userId);
     const query = {

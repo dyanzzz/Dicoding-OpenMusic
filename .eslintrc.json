@@ -24,7 +24,10 @@
                     "_userService",
                     "_tokenManager",
                     "_usersService",
-                    "_playlistsService"
+                    "_playlistsService",
+                    "_validatorPlaylist",
+                    "_validatorPlaylistSong",
+                    "_songsService"
                 ]
             }
         ]

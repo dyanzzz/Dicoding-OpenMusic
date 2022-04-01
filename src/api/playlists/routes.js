@@ -23,14 +23,14 @@ const routes = (handler) => [
       auth: 'openmusicapp_jwt',
     },
   },
-  /* {
+  {
     method: 'POST',
     path: '/playlists/{id}/songs',
     handler: handler.postPlaylistSongByIdHandler,
     options: {
       auth: 'openmusicapp_jwt',
     },
-  }, */
+  },
   /* {
     method: 'GET',
     path: '/playlists/{id}/songs',
