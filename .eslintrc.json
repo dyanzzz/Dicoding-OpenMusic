@@ -23,9 +23,8 @@
                     "_authenticationService",
                     "_userService",
                     "_tokenManager",
-                    "_collaborationService",
-                    "_collaborationsService",
-                    "_notesService"
+                    "_usersService",
+                    "_playlistsService"
                 ]
             }
         ]
