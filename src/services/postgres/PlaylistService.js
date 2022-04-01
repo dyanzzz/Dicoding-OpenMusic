@@ -3,6 +3,8 @@ const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 // const NotFoundError = require('../../exceptions/NotFoundError');
 const { mapDBToModelGetAllPlaylist } = require('../../api/playlists/entityPlaylist');
+const { mapDBToModelSong } = require('../../api/songs/entitySong');
+const NotFoundError = require('../../exceptions/NotFoundError');
 
 class PlaylistService {
   constructor() {
@@ -44,7 +46,6 @@ class PlaylistService {
   }
 
   async getPlaylists(userId) {
-    console.log(userId);
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username FROM playlists
       LEFT JOIN users ON users.id = playlists.owner
@@ -53,8 +54,37 @@ class PlaylistService {
     };
 
     const result = await this._pool.query(query);
-    console.log(result.rows);
     return result.rows.map(mapDBToModelGetAllPlaylist);
+  }
+
+  async getPlaylistById(userId, playlistId) {
+    const query = {
+      text: `SELECT playlists.id, playlists.name, users.username FROM playlists
+      LEFT JOIN users ON users.id = playlists.owner
+      WHERE playlists.id=$1 AND playlists.owner=$2 GROUP BY playlists.id, users.id`,
+      values: [playlistId, userId],
+    };
+
+    const result = await this._pool.query(query);
+    if (!result.rows.length) {
+      throw new NotFoundError('Playlist By Id Not Found');
+    }
+    return result.rows.map(mapDBToModelGetAllPlaylist)[0];
+  }
+
+  async getPlaylistSongs(playlistId) {
+    const query = {
+      text: `SELECT songs.id, songs.title, songs.performer FROM playlistsongs
+      LEFT JOIN songs ON songs.id = playlistsongs.song_id
+      WHERE playlistsongs.playlist_id=$1 GROUP BY playlistsongs.id, songs.id`,
+      values: [playlistId],
+    };
+
+    const result = await this._pool.query(query);
+    if (!result.rows.length) {
+      throw new NotFoundError('Playlist Songs Not Found');
+    }
+    return result.rows.map(mapDBToModelSong);
   }
 
   async deletePlaylist(playlistId) {

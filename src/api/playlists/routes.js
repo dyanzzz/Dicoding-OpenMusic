@@ -31,15 +31,15 @@ const routes = (handler) => [
       auth: 'openmusicapp_jwt',
     },
   },
-  /* {
+  {
     method: 'GET',
     path: '/playlists/{id}/songs',
-    handler: handler.getPlaylistSongByIdHandler,
+    handler: handler.getPlaylistSongsByIdHandler,
     options: {
       auth: 'openmusicapp_jwt',
     },
   },
-  {
+  /* {
     method: 'DELETE',
     path: '/playlists/{id}/songs',
     handler: handler.deletePlaylistSongByIdHandler,
