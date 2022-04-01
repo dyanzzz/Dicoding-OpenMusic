@@ -11,6 +11,7 @@ class PlaylistsHandler {
     this.deletePlaylistByIdHandler = this.deletePlaylistByIdHandler.bind(this);
     this.postPlaylistSongByIdHandler = this.postPlaylistSongByIdHandler.bind(this);
     this.getPlaylistSongsByIdHandler = this.getPlaylistSongsByIdHandler.bind(this);
+    this.deletePlaylistSongByIdHandler = this.deletePlaylistSongByIdHandler.bind(this);
   }
 
   async postPlaylistHandler(request, h) {
@@ -102,6 +103,23 @@ class PlaylistsHandler {
         playlist,
       },
     };
+  }
+
+  async deletePlaylistSongByIdHandler(request, h) {
+    const { id: credentialId } = request.auth.credentials;
+    const { id: playlistId } = request.params;
+    const { songId } = request.payload;
+
+    await this._usersService.verifyUserOwner(credentialId, playlistId);
+
+    await this._playlistsService.deletePlaylistSong(playlistId, songId);
+
+    const response = h.response({
+      status: 'success',
+      message: 'Playlist Songs berhasil dihapus',
+    });
+
+    return response;
   }
 }
 
