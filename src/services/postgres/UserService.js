@@ -3,9 +3,12 @@ const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const InvariantError = require('../../exceptions/InvariantError');
 const AuthenticationError = require('../../exceptions/AuthenticationError');
+const NotFoundError = require('../../exceptions/NotFoundError');
+const AuthorizationError = require('../../exceptions/AuthorizationError');
 
 class UsersService {
-  constructor() {
+  constructor(playlistService) {
+    this._playlistsService = playlistService;
     this._pool = new Pool();
   }
 
@@ -63,6 +66,57 @@ class UsersService {
     }
 
     return id;
+  }
+
+  async verifyUserExist(owner) {
+    const query = {
+      text: 'SELECT * FROM users WHERE id = $1',
+      values: [owner],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('User tidak ditemukan');
+    }
+
+    return result.rows[0].id;
+  }
+
+  async verifyUserOwner(userId, playlistId) {
+    const query = {
+      text: 'SELECT * FROM playlists WHERE id = $1',
+      values: [playlistId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('Playlist tidak ditemukan');
+    }
+
+    const playlist = result.rows[0];
+
+    if (playlist.owner !== userId) {
+      throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
+    }
+
+    return playlist.id;
+  }
+
+  async verifyUserAccess(name, owner) {
+    try {
+      await this.verifyUserOwner(name, owner);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this._playlistsService.verifyCollaborator(name, owner);
+      } catch {
+        throw error;
+      }
+    }
   }
 }
 
