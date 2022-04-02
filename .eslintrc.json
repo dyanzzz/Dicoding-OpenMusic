@@ -27,7 +27,8 @@
                     "_playlistsService",
                     "_validatorPlaylist",
                     "_validatorPlaylistSong",
-                    "_songsService"
+                    "_songsService",
+                    "_collaborationsService"
                 ]
             }
         ]

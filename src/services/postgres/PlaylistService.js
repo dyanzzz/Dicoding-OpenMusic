@@ -4,10 +4,12 @@ const InvariantError = require('../../exceptions/InvariantError');
 const { mapDBToModelGetAllPlaylist, mapDBToModelGetAllPlaylistActivities } = require('../../api/playlists/entityPlaylist');
 const { mapDBToModelSong } = require('../../api/songs/entitySong');
 const NotFoundError = require('../../exceptions/NotFoundError');
+const AuthorizationError = require('../../exceptions/AuthorizationError');
 
 class PlaylistService {
-  constructor() {
+  constructor(collaborationService) {
     this._pool = new Pool();
+    this._collaborationsService = collaborationService;
   }
 
   async addPlaylist(payloadData) {
@@ -61,7 +63,8 @@ class PlaylistService {
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username FROM playlists
       LEFT JOIN users ON users.id = playlists.owner
-      WHERE playlists.owner=$1 GROUP BY playlists.id, users.id`,
+      LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
+      WHERE playlists.owner=$1 OR collaborations.user_id=$1 GROUP BY playlists.id, users.id`,
       values: [userId],
     };
 
@@ -73,7 +76,9 @@ class PlaylistService {
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username FROM playlists
       LEFT JOIN users ON users.id = playlists.owner
-      WHERE playlists.id=$1 AND playlists.owner=$2 GROUP BY playlists.id, users.id`,
+      LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
+      WHERE playlists.id=$1 AND playlists.owner=$2 OR collaborations.playlist_id=$1
+      GROUP BY playlists.id, users.id`,
       values: [playlistId, userId],
     };
 
@@ -168,6 +173,40 @@ class PlaylistService {
       throw new NotFoundError('Playlist Activities Not Found');
     }
     return result.rows.map(mapDBToModelGetAllPlaylistActivities);
+  }
+
+  async verifyPlaylistOwner(owner, id) {
+    const query = {
+      text: 'SELECT * FROM playlists WHERE id = $1',
+      values: [id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('Playlist tidak ditemukan');
+    }
+
+    const playlist = result.rows[0];
+
+    if (playlist.owner !== owner) {
+      throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
+    }
+  }
+
+  async verifyPlaylistAccess(userId, playlistId) {
+    try {
+      await this.verifyPlaylistOwner(userId, playlistId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this._collaborationsService.verifyCollaborator(userId, playlistId);
+      } catch {
+        throw error;
+      }
+    }
   }
 }
 
