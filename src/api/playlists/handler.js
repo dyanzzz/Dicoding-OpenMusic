@@ -52,7 +52,7 @@ class PlaylistsHandler {
     const { id: credentialId } = request.auth.credentials;
     const { id: playlistId } = request.params;
 
-    await this._usersService.verifyUserOwner(credentialId, playlistId);
+    await this._playlistsService.verifyPlaylistOwner(credentialId, playlistId);
 
     await this._playlistsService.deletePlaylist(playlistId);
 
@@ -72,7 +72,7 @@ class PlaylistsHandler {
     request.payload.playlistId = playlistId;
     await this._validatorPlaylistSong.validatePlaylistSongPayload(request.payload);
     await this._songsService.verifySongExist(songId);
-    await this._usersService.verifyUserOwner(credentialId, playlistId);
+    await this._playlistsService.verifyPlaylistAccess(credentialId, playlistId);
 
     const playlistSong = await this._playlistsService.addPlaylistSong(request.payload, credentialId);
 
@@ -91,7 +91,7 @@ class PlaylistsHandler {
     const { id: credentialId } = request.auth.credentials;
     const { id: playlistId } = request.params;
 
-    await this._usersService.verifyUserOwner(credentialId, playlistId);
+    await this._playlistsService.verifyPlaylistAccess(credentialId, playlistId);
 
     const playlist = await this._playlistsService.getPlaylistById(credentialId, playlistId);
     const songs = await this._playlistsService.getPlaylistSongs(playlistId);
@@ -110,7 +110,7 @@ class PlaylistsHandler {
     const { id: playlistId } = request.params;
     const { songId } = request.payload;
 
-    await this._usersService.verifyUserOwner(credentialId, playlistId);
+    await this._playlistsService.verifyPlaylistAccess(credentialId, playlistId);
 
     await this._playlistsService.deletePlaylistSong(playlistId, songId, credentialId);
 
@@ -126,7 +126,7 @@ class PlaylistsHandler {
     const { id: credentialId } = request.auth.credentials;
     const { id: playlistId } = request.params;
 
-    await this._usersService.verifyUserAccess(credentialId, playlistId);
+    await this._playlistsService.verifyPlaylistAccess(credentialId, playlistId);
 
     const data = {};
     const playlist = await this._playlistsService.getPlaylistById(credentialId, playlistId);
