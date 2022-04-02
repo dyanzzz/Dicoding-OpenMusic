@@ -1,8 +1,7 @@
 const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
-// const NotFoundError = require('../../exceptions/NotFoundError');
-const { mapDBToModelGetAllPlaylist } = require('../../api/playlists/entityPlaylist');
+const { mapDBToModelGetAllPlaylist, mapDBToModelGetAllPlaylistActivities } = require('../../api/playlists/entityPlaylist');
 const { mapDBToModelSong } = require('../../api/songs/entitySong');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
@@ -28,8 +27,10 @@ class PlaylistService {
     return result.rows[0].id;
   }
 
-  async addPlaylistSong(payloadData) {
+  async addPlaylistSong(payloadData, userId) {
     const id = nanoid(16);
+    const idPlaylistActivity = nanoid(16);
+    const time = new Date().toISOString();
 
     const query = {
       text: 'INSERT INTO playlistsongs VALUES($1, $2, $3) RETURNING id',
@@ -40,6 +41,17 @@ class PlaylistService {
 
     if (!result.rows.length) {
       throw new InvariantError('Input Playlist Song Failed');
+    }
+
+    const queryPlaylistActivity = {
+      text: 'INSERT INTO playlist_song_activities VALUES($1, $2, $3, $4, $5, $6) RETURNING id',
+      values: [idPlaylistActivity, payloadData.playlistId, payloadData.songId, userId, 'add', time],
+    };
+
+    const resultPlaylistActivity = await this._pool.query(queryPlaylistActivity);
+
+    if (!resultPlaylistActivity.rows.length) {
+      throw new InvariantError('Input Playlist Activity Add Failed');
     }
 
     return result.rows[0].id;
@@ -100,7 +112,10 @@ class PlaylistService {
     }
   }
 
-  async deletePlaylistSong(playlistId, songId) {
+  async deletePlaylistSong(playlistId, songId, userId) {
+    const idPlaylistActivity = nanoid(16);
+    const time = new Date().toISOString();
+
     const query = {
       text: 'DELETE FROM playlistsongs WHERE playlist_id=$1 AND song_id=$2 RETURNING id',
       values: [playlistId, songId],
@@ -110,6 +125,17 @@ class PlaylistService {
 
     if (!result.rows.length) {
       throw new InvariantError('Playlist song gagal dihapus');
+    }
+
+    const queryPlaylistActivity = {
+      text: 'INSERT INTO playlist_song_activities VALUES($1, $2, $3, $4, $5, $6) RETURNING id',
+      values: [idPlaylistActivity, playlistId, songId, userId, 'delete', time],
+    };
+
+    const resultPlaylistActivity = await this._pool.query(queryPlaylistActivity);
+
+    if (!resultPlaylistActivity.rows.length) {
+      throw new InvariantError('Input Playlist Activity Delete Failed');
     }
   }
 
@@ -124,6 +150,24 @@ class PlaylistService {
     if (!result.rows.length) {
       throw new InvariantError('Playlist gagal diverifikasi');
     }
+  }
+
+  async getPlaylistActivities(playlistId) {
+    const query = {
+      text: `SELECT users.username as username, songs.title as title, playlist_song_activities.action as action, playlist_song_activities.time as time
+      FROM playlist_song_activities
+      LEFT JOIN playlists ON playlists.id = playlist_song_activities.playlist_id
+      LEFT JOIN songs ON songs.id = playlist_song_activities.song_id
+      LEFT JOIN users ON users.id = playlist_song_activities.user_id
+      WHERE playlist_song_activities.playlist_id=$1`,
+      values: [playlistId],
+    };
+
+    const result = await this._pool.query(query);
+    if (!result.rows.length) {
+      throw new NotFoundError('Playlist Activities Not Found');
+    }
+    return result.rows.map(mapDBToModelGetAllPlaylistActivities);
   }
 }
 
