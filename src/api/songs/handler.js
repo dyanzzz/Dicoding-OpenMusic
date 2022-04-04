@@ -1,7 +1,6 @@
-const { mapModelToDBSong } = require('./entitySong');
-
 class SongHandler {
-  constructor(service, validator) {
+  constructor(entity, service, validator) {
+    this._songEntity = entity.song;
     this._service = service.song;
     this._validator = validator.song;
 
@@ -14,7 +13,7 @@ class SongHandler {
 
   async postSongHandler(request, h) {
     this._validator.validateSongPayload(request.payload);
-    const payloadData = mapModelToDBSong(request.payload);
+    const payloadData = this._songEntity.mapModelToDBSong(request.payload);
     const songId = await this._service.addSong(payloadData);
 
     const response = h.response({
@@ -30,8 +29,8 @@ class SongHandler {
   }
 
   async getSongsHandler(request) {
-    const payloadData = mapModelToDBSong(request.query);
-    const songs = await this._service.getSongs(payloadData);
+    const payloadData = this._songEntity.mapModelToDBSong(request.query);
+    const songs = await this._service.getSongs(payloadData, this._songEntity);
 
     return {
       status: 'success',
@@ -43,7 +42,7 @@ class SongHandler {
 
   async getSongByIdHandler(request) {
     const { id } = request.params;
-    const song = await this._service.getSongById(id);
+    const song = await this._service.getSongById(id, this._songEntity);
 
     return {
       status: 'success',
@@ -56,7 +55,7 @@ class SongHandler {
   async putSongByIdHandler(request) {
     this._validator.validateSongPayload(request.payload);
     const { id } = request.params;
-    const payloadData = mapModelToDBSong(request.payload);
+    const payloadData = this._songEntity.mapModelToDBSong(request.payload);
 
     await this._service.editSongById(id, payloadData);
 

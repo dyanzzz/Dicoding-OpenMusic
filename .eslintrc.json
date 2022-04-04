@@ -13,6 +13,20 @@
     "rules": {
         "no-console": "off",
         "max-len": 0,
-        "no-underscore-dangle": ["error", { "allow": ["_notes", "_service", "_validator", "_pool"] }]
+        "no-underscore-dangle": [
+            "error", {
+                "allow": [
+                    "_notes",
+                    "_service",
+                    "_validator",
+                    "_pool",
+                    "_tokenManager",
+                    "_validatorPlaylist",
+                    "_validatorPlaylistSong",
+                    "_authenticationService", "_userService", "_usersService", "_playlistsService", "_songsService","_collaborationsService",
+                    "_albumEntity", "_songEntity", "_playlistEntity", "_userEntity"
+                ]
+            }
+        ]
     }
 }
