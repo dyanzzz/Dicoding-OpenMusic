@@ -2,8 +2,6 @@ const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const { mapDBToModelAlbum, mapDBToModelAlbumSimple } = require('../../api/albums/entityAlbum');
-const { mapDBToModelSongInAlbum } = require('../../api/songs/entitySong');
 
 class AlbumService {
   constructor() {
@@ -29,12 +27,12 @@ class AlbumService {
     return result.rows[0].id;
   }
 
-  async getAlbums() {
+  async getAlbums(entityAlbum) {
     const result = await this._pool.query('SELECT * FROM albums');
-    return result.rows.map(mapDBToModelAlbumSimple);
+    return result.rows.map(entityAlbum.mapDBToModelAlbumSimple);
   }
 
-  async getAlbumById(id) {
+  async getAlbumById(id, entityAlbum, entitySong) {
     const query = {
       text: 'SELECT * FROM albums WHERE id=$1',
       values: [id],
@@ -51,8 +49,8 @@ class AlbumService {
     };
     const resultSong = await this._pool.query(querySong);
 
-    const album = result.rows.map(mapDBToModelAlbum)[0];
-    const songs = resultSong.rows.map(mapDBToModelSongInAlbum);
+    const album = result.rows.map(entityAlbum.mapDBToModelAlbum)[0];
+    const songs = resultSong.rows.map(entitySong.mapDBToModelSongInAlbum);
     album.songs = songs;
 
     return album;

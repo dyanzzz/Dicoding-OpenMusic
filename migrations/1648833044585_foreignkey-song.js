@@ -1,7 +1,3 @@
-/* eslint-disable camelcase */
-
-exports.shorthands = undefined;
-
 exports.up = (pgm) => {
   // membuat album baru sebagai dummy
   pgm.sql("INSERT INTO albums(id, name, year, created_at, updated_at) VALUES ('old_album', 'old_album', 2022, '2022-04-01T16:59:56.971Z', '2022-04-01T16:59:56.971Z')");

@@ -20,15 +20,11 @@
                     "_service",
                     "_validator",
                     "_pool",
-                    "_authenticationService",
-                    "_userService",
                     "_tokenManager",
-                    "_usersService",
-                    "_playlistsService",
                     "_validatorPlaylist",
                     "_validatorPlaylistSong",
-                    "_songsService",
-                    "_collaborationsService"
+                    "_authenticationService", "_userService", "_usersService", "_playlistsService", "_songsService","_collaborationsService",
+                    "_albumEntity", "_songEntity", "_playlistEntity", "_userEntity"
                 ]
             }
         ]

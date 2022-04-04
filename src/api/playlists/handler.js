@@ -1,5 +1,7 @@
 class PlaylistsHandler {
-  constructor(service, validator) {
+  constructor(entity, service, validator) {
+    this._playlistEntity = entity.playlist;
+    this._songEntity = entity.song;
     this._playlistsService = service.playlist;
     this._usersService = service.user;
     this._songsService = service.song;
@@ -38,7 +40,7 @@ class PlaylistsHandler {
 
   async getPlaylistsHandler(request) {
     const { id: userId } = request.auth.credentials;
-    const playlists = await this._playlistsService.getPlaylists(userId);
+    const playlists = await this._playlistsService.getPlaylists(userId, this._playlistEntity);
 
     return {
       status: 'success',
@@ -93,8 +95,8 @@ class PlaylistsHandler {
 
     await this._playlistsService.verifyPlaylistAccess(credentialId, playlistId);
 
-    const playlist = await this._playlistsService.getPlaylistById(credentialId, playlistId);
-    const songs = await this._playlistsService.getPlaylistSongs(playlistId);
+    const playlist = await this._playlistsService.getPlaylistById(credentialId, playlistId, this._playlistEntity);
+    const songs = await this._playlistsService.getPlaylistSongs(playlistId, this._songEntity);
     playlist.songs = songs;
 
     return {
@@ -129,9 +131,9 @@ class PlaylistsHandler {
     await this._playlistsService.verifyPlaylistAccess(credentialId, playlistId);
 
     const data = {};
-    const playlist = await this._playlistsService.getPlaylistById(credentialId, playlistId);
+    const playlist = await this._playlistsService.getPlaylistById(credentialId, playlistId, this._playlistEntity);
     data.playlistId = playlist.id;
-    data.activities = await this._playlistsService.getPlaylistActivities(playlistId);
+    data.activities = await this._playlistsService.getPlaylistActivities(playlistId, this._playlistEntity);
 
     return {
       status: 'success',

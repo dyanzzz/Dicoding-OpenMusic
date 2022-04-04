@@ -1,7 +1,7 @@
-const { mapDBToModelAlbum } = require('./entityAlbum');
-
 class AlbumHandler {
-  constructor(service, validator) {
+  constructor(entity, service, validator) {
+    this._albumEntity = entity.album;
+    this._songEntity = entity.song;
     this._service = service.album;
     this._validator = validator.album;
 
@@ -14,7 +14,7 @@ class AlbumHandler {
 
   async postAlbumHandler(request, h) {
     this._validator.validateAlbumPayload(request.payload);
-    const payloadData = mapDBToModelAlbum(request.payload);
+    const payloadData = this._albumEntity.mapDBToModelAlbum(request.payload);
 
     const albumId = await this._service.addAlbum(payloadData);
 
@@ -31,7 +31,7 @@ class AlbumHandler {
   }
 
   async getAlbumsHandler() {
-    const album = await this._service.getAlbums();
+    const album = await this._service.getAlbums(this._albumEntity);
 
     return {
       status: 'success',
@@ -43,7 +43,7 @@ class AlbumHandler {
 
   async getAlbumByIdHandler(request) {
     const { id } = request.params;
-    const album = await this._service.getAlbumById(id);
+    const album = await this._service.getAlbumById(id, this._albumEntity, this._songEntity);
 
     return {
       status: 'success',
@@ -56,7 +56,7 @@ class AlbumHandler {
   async putAlbumByIdHandler(request) {
     this._validator.validateAlbumPayload(request.payload);
     const { id } = request.params;
-    const payloadData = mapDBToModelAlbum(request.payload);
+    const payloadData = this._albumEntity.mapDBToModelAlbum(request.payload);
 
     await this._service.editAlbumById(id, payloadData);
 

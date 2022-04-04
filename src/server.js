@@ -9,16 +9,19 @@ const ClientError = require('./exceptions/ClientError');
 const AlbumService = require('./services/postgres/AlbumService');
 const AlbumsValidator = require('./validator/albums');
 const albums = require('./api/albums');
+const albumEntity = require('./entity/Album');
 
 // songs
 const SongService = require('./services/postgres/SongService');
 const SongsValidator = require('./validator/songs');
 const songs = require('./api/songs');
+const songEntity = require('./entity/Song');
 
 // users
 const users = require('./api/users');
 const UsersService = require('./services/postgres/UserService');
 const UsersValidator = require('./validator/users');
+const userEntity = require('./entity/User');
 
 // authentications
 const authentications = require('./api/authentications');
@@ -31,6 +34,7 @@ const playlists = require('./api/playlists');
 const PlaylistsService = require('./services/postgres/PlaylistService');
 const PlaylistsValidator = require('./validator/playlists');
 const PlaylistSongsValidator = require('./validator/playlistSongs');
+const playlistEntity = require('./entity/Playlist');
 
 // collaborations
 const collaborations = require('./api/collaborations');
@@ -82,6 +86,9 @@ const init = async () => {
     {
       plugin: users,
       options: {
+        entity: {
+          user: userEntity,
+        },
         service: {
           user: usersService,
         },
@@ -104,6 +111,10 @@ const init = async () => {
     {
       plugin: albums,
       options: {
+        entity: {
+          album: albumEntity,
+          song: songEntity,
+        },
         service: {
           album: albumService,
         },
@@ -115,6 +126,9 @@ const init = async () => {
     {
       plugin: songs,
       options: {
+        entity: {
+          song: songEntity,
+        },
         service: {
           song: songService,
         },
@@ -126,6 +140,10 @@ const init = async () => {
     {
       plugin: playlists,
       options: {
+        entity: {
+          playlist: playlistEntity,
+          song: songEntity,
+        },
         service: {
           playlist: playlistsService,
           user: usersService,

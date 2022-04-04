@@ -1,8 +1,6 @@
 const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
-const { mapDBToModelGetAllPlaylist, mapDBToModelGetAllPlaylistActivities } = require('../../api/playlists/entityPlaylist');
-const { mapDBToModelSong } = require('../../api/songs/entitySong');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
 
@@ -59,37 +57,37 @@ class PlaylistService {
     return result.rows[0].id;
   }
 
-  async getPlaylists(userId) {
+  async getPlaylists(getUserPlaylists, entityPlaylist) {
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username FROM playlists
       LEFT JOIN users ON users.id = playlists.owner
       LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
       WHERE playlists.owner=$1 OR collaborations.user_id=$1 GROUP BY playlists.id, users.id`,
-      values: [userId],
+      values: [getUserPlaylists],
     };
 
     const result = await this._pool.query(query);
-    return result.rows.map(mapDBToModelGetAllPlaylist);
+    return result.rows.map(entityPlaylist.mapDBToModelGetAllPlaylist);
   }
 
-  async getPlaylistById(userId, playlistId) {
+  async getPlaylistById(getUserPlaylists, playlistId, entityPlaylist) {
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username FROM playlists
       LEFT JOIN users ON users.id = playlists.owner
       LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
       WHERE playlists.id=$1 AND playlists.owner=$2 OR collaborations.playlist_id=$1
       GROUP BY playlists.id, users.id`,
-      values: [playlistId, userId],
+      values: [playlistId, getUserPlaylists],
     };
 
     const result = await this._pool.query(query);
     if (!result.rows.length) {
       throw new NotFoundError('Playlist By Id Not Found');
     }
-    return result.rows.map(mapDBToModelGetAllPlaylist)[0];
+    return result.rows.map(entityPlaylist.mapDBToModelGetAllPlaylist)[0];
   }
 
-  async getPlaylistSongs(playlistId) {
+  async getPlaylistSongs(playlistId, songEntity) {
     const query = {
       text: `SELECT songs.id, songs.title, songs.performer FROM playlistsongs
       LEFT JOIN songs ON songs.id = playlistsongs.song_id
@@ -101,7 +99,7 @@ class PlaylistService {
     if (!result.rows.length) {
       throw new NotFoundError('Playlist Songs Not Found');
     }
-    return result.rows.map(mapDBToModelSong);
+    return result.rows.map(songEntity.mapDBToModelSong);
   }
 
   async deletePlaylist(playlistId) {
@@ -157,7 +155,7 @@ class PlaylistService {
     }
   }
 
-  async getPlaylistActivities(playlistId) {
+  async getPlaylistActivities(playlistId, entityPlaylist) {
     const query = {
       text: `SELECT users.username as username, songs.title as title, playlist_song_activities.action as action, playlist_song_activities.time as time
       FROM playlist_song_activities
@@ -172,7 +170,7 @@ class PlaylistService {
     if (!result.rows.length) {
       throw new NotFoundError('Playlist Activities Not Found');
     }
-    return result.rows.map(mapDBToModelGetAllPlaylistActivities);
+    return result.rows.map(entityPlaylist.mapDBToModelGetAllPlaylistActivities);
   }
 
   async verifyPlaylistOwner(owner, id) {

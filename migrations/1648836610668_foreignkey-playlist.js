@@ -1,7 +1,3 @@
-/* eslint-disable camelcase */
-
-exports.shorthands = undefined;
-
 exports.up = (pgm) => {
   // membuat album baru sebagai dummy
   pgm.sql("INSERT INTO users(id, username, password, fullname) VALUES ('old_user', 'old_user', 'old_user', 'old_user')");

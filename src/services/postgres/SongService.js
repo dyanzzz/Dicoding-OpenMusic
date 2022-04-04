@@ -2,7 +2,6 @@ const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const { mapDBToModelSong, mapDBToModelSongSimple } = require('../../api/songs/entitySong');
 
 class SongService {
   constructor() {
@@ -28,17 +27,17 @@ class SongService {
     return result.rows[0].id;
   }
 
-  async getSongs(payloadData) {
+  async getSongs(payloadData, songEntity) {
     const query = {
       text: "SELECT * FROM songs WHERE LOWER(title) LIKE LOWER(CONCAT('%',COALESCE($1, ''), '%')) AND LOWER(performer) LIKE LOWER(CONCAT('%',COALESCE($2, ''),'%'))",
       values: [payloadData.title, payloadData.performer],
     };
 
     const result = await this._pool.query(query);
-    return result.rows.map(mapDBToModelSongSimple);
+    return result.rows.map(songEntity.mapDBToModelSongSimple);
   }
 
-  async getSongById(id) {
+  async getSongById(id, songEntity) {
     const query = {
       text: 'SELECT * FROM songs WHERE id=$1',
       values: [id],
@@ -49,7 +48,7 @@ class SongService {
       throw new NotFoundError('Song Not Found');
     }
 
-    return result.rows.map(mapDBToModelSong)[0];
+    return result.rows.map(songEntity.mapDBToModelSong)[0];
   }
 
   async editSongById(id, payloadData) {

@@ -1,4 +1,4 @@
-const { mapToModelUser } = require('../users/entityUser');
+const { mapToModelUser } = require('../../entity/User');
 
 class AuthenticationsHandler {
   constructor(service, tokenManager, validator) {
