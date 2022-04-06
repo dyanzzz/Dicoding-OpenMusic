@@ -24,7 +24,8 @@
                     "_validatorPlaylist",
                     "_validatorPlaylistSong",
                     "_authenticationService", "_userService", "_usersService", "_playlistsService", "_songsService","_collaborationsService",
-                    "_albumEntity", "_songEntity", "_playlistEntity", "_userEntity"
+                    "_albumEntity", "_songEntity", "_playlistEntity", "_userEntity",
+                    "_exportService", "_exports"
                 ]
             }
         ]
