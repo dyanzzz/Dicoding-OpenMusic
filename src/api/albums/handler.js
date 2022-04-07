@@ -2,21 +2,25 @@ class AlbumHandler {
   constructor(entity, service, validator) {
     this._albumEntity = entity.album;
     this._songEntity = entity.song;
-    this._service = service.album;
-    this._validator = validator.album;
+    this._albumsService = service.album;
+    this._likesService = service.like;
+    this._usersService = service.user;
+    this._albumValidator = validator.album;
 
     this.postAlbumHandler = this.postAlbumHandler.bind(this);
     this.getAlbumsHandler = this.getAlbumsHandler.bind(this);
     this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
     this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
     this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
+    this.postLikeHandler = this.postLikeHandler.bind(this);
+    this.getCountAlbumLikesHandler = this.getCountAlbumLikesHandler.bind(this);
   }
 
   async postAlbumHandler(request, h) {
-    this._validator.validateAlbumPayload(request.payload);
+    this._albumValidator.validateAlbumPayload(request.payload);
     const payloadData = this._albumEntity.mapDBToModelAlbum(request.payload);
 
-    const albumId = await this._service.addAlbum(payloadData);
+    const albumId = await this._albumsService.addAlbum(payloadData);
 
     const response = h.response({
       status: 'success',
@@ -31,7 +35,7 @@ class AlbumHandler {
   }
 
   async getAlbumsHandler() {
-    const album = await this._service.getAlbums(this._albumEntity);
+    const album = await this._albumsService.getAlbums(this._albumEntity);
 
     return {
       status: 'success',
@@ -43,7 +47,7 @@ class AlbumHandler {
 
   async getAlbumByIdHandler(request) {
     const { id } = request.params;
-    const album = await this._service.getAlbumById(id, this._albumEntity, this._songEntity);
+    const album = await this._albumsService.getAlbumById(id, this._albumEntity, this._songEntity);
 
     return {
       status: 'success',
@@ -54,11 +58,11 @@ class AlbumHandler {
   }
 
   async putAlbumByIdHandler(request) {
-    this._validator.validateAlbumPayload(request.payload);
+    this._albumValidator.validateAlbumPayload(request.payload);
     const { id } = request.params;
     const payloadData = this._albumEntity.mapDBToModelAlbum(request.payload);
 
-    await this._service.editAlbumById(id, payloadData);
+    await this._albumsService.editAlbumById(id, payloadData);
 
     return {
       status: 'success',
@@ -68,11 +72,53 @@ class AlbumHandler {
 
   async deleteAlbumByIdHandler(request) {
     const { id } = request.params;
-    await this._service.deleteAlbumById(id);
+    await this._albumsService.deleteAlbumById(id);
 
     return {
       status: 'success',
       message: 'Album deleted success',
+    };
+  }
+
+  async postLikeHandler(request, h) {
+    const { id: credentialId } = request.auth.credentials;
+    const { id: albumId } = request.params;
+
+    await this._albumsService.getAlbumById(albumId, this._albumEntity, this._songEntity);
+    await this._usersService.verifyUserExist(credentialId);
+    const likeStatus = await this._likesService.verifyLike(credentialId, albumId);
+
+    let likeId = '';
+    let message = '';
+    if (!likeStatus) {
+      likeId = await this._likesService.addLike(credentialId, albumId);
+      message = 'Likes berhasil ditambahkan';
+    } else {
+      likeId = await this._likesService.deleteLike(credentialId, albumId);
+      message = 'Likes berhasil dihapus';
+    }
+
+    const response = h.response({
+      status: 'success',
+      message,
+      data: {
+        likeId,
+      },
+    });
+    response.code(201);
+    return response;
+  }
+
+  async getCountAlbumLikesHandler(request) {
+    const { id: albumId } = request.params;
+
+    const likes = await this._likesService.getCountLikesAlbumById(albumId);
+
+    return {
+      status: 'success',
+      data: {
+        likes,
+      },
     };
   }
 }

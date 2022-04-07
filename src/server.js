@@ -12,6 +12,7 @@ const AlbumService = require('./services/postgres/AlbumService');
 const AlbumsValidator = require('./validator/albums');
 const albums = require('./api/albums');
 const albumEntity = require('./entity/Album');
+const LikesService = require('./services/postgres/LikeService');
 
 // songs
 const SongService = require('./services/postgres/SongService');
@@ -58,6 +59,7 @@ const init = async () => {
   const playlistsService = new PlaylistsService(collaborationsService);
   const usersService = new UsersService(playlistsService);
   const albumService = new AlbumService();
+  const likeService = new LikesService();
   const songService = new SongService();
   const authenticationService = new AuthenticationsService();
   const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/images'));
@@ -133,6 +135,8 @@ const init = async () => {
         },
         service: {
           album: albumService,
+          like: likeService,
+          user: usersService,
         },
         validator: {
           album: AlbumsValidator,
