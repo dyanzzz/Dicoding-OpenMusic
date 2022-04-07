@@ -32,14 +32,11 @@ const routes = (handler) => [
       auth: 'openmusicapp_jwt',
     },
   },
-  /* {
+  {
     method: 'GET',
     path: '/albums/{id}/likes',
-    handler: handler.getAlbumLikeHandler,
-    options: {
-      auth: 'openmusicapp_jwt',
-    },
-  }, */
+    handler: handler.getCountAlbumLikesHandler,
+  },
 ];
 
 module.exports = routes;

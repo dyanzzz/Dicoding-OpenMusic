@@ -47,6 +47,17 @@ class LikeService {
 
     return result.rows.length;
   }
+
+  async getCountLikesAlbumById(albumId) {
+    const query = {
+      text: 'SELECT * FROM user_album_likes WHERE album_id=$1',
+      values: [albumId],
+    };
+
+    const result = await this._pool.query(query);
+
+    return result.rows.length;
+  }
 }
 
 module.exports = LikeService;

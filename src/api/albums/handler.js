@@ -13,6 +13,7 @@ class AlbumHandler {
     this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
     this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
     this.postLikeHandler = this.postLikeHandler.bind(this);
+    this.getCountAlbumLikesHandler = this.getCountAlbumLikesHandler.bind(this);
   }
 
   async postAlbumHandler(request, h) {
@@ -106,6 +107,19 @@ class AlbumHandler {
     });
     response.code(201);
     return response;
+  }
+
+  async getCountAlbumLikesHandler(request) {
+    const { id: albumId } = request.params;
+
+    const likes = await this._likesService.getCountLikesAlbumById(albumId);
+
+    return {
+      status: 'success',
+      data: {
+        likes,
+      },
+    };
   }
 }
 
