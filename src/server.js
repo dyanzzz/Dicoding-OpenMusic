@@ -7,6 +7,9 @@ const path = require('path');
 const Inert = require('@hapi/inert');
 const ClientError = require('./exceptions/ClientError');
 
+// cache
+const CacheService = require('./services/redis/CacheService');
+
 // album
 const AlbumService = require('./services/postgres/AlbumService');
 const AlbumsValidator = require('./validator/albums');
@@ -55,11 +58,12 @@ const StorageService = require('./services/storage/StorageService');
 const UploadsValidator = require('./validator/uploads');
 
 const init = async () => {
+  const cacheService = new CacheService();
   const collaborationsService = new CollaborationsService();
   const playlistsService = new PlaylistsService(collaborationsService);
   const usersService = new UsersService(playlistsService);
   const albumService = new AlbumService();
-  const likeService = new LikesService();
+  const likeService = new LikesService(cacheService);
   const songService = new SongService();
   const authenticationService = new AuthenticationsService();
   const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/images'));
