@@ -70,6 +70,20 @@ class AlbumService {
     }
   }
 
+  async editCoverAlbumById(id, coverUrl) {
+    const updateAt = new Date().toISOString();
+    const query = {
+      text: 'UPDATE albums SET cover=$2, updated_at=$3 WHERE id=$1 RETURNING id',
+      values: [id, coverUrl, updateAt],
+    };
+    console.log(query);
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('Update Failed. Id Not Found');
+    }
+  }
+
   async deleteAlbumById(id) {
     const query = {
       text: 'DELETE FROM albums WHERE id=$1 RETURNING id',
