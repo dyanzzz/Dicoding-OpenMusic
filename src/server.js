@@ -195,7 +195,10 @@ const init = async () => {
     {
       plugin: uploads,
       options: {
-        service: storageService,
+        service: {
+          storage: storageService,
+          album: albumService,
+        },
         validator: UploadsValidator,
       },
     },

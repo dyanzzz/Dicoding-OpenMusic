@@ -1,21 +1,28 @@
 class UploadsHandler {
   constructor(service, validator) {
-    this._service = service;
+    this._storagesService = service.storage;
+    this._albumsService = service.album;
     this._validator = validator;
 
     this.postUploadImageAlbumHandler = this.postUploadImageAlbumHandler.bind(this);
   }
 
   async postUploadImageAlbumHandler(request, h) {
-    const { data } = request.payload;
-    this._validator.validateImageAlbumHeaders(data.hapi.headers);
+    const { cover } = request.payload;
+    const { id: albumId } = request.params;
 
-    const filename = await this._service.writeFile(data, data.hapi);
+    this._validator.validateImageAlbumHeaders(cover.hapi.headers);
+
+    const filename = await this._storagesService.writeFile(cover, cover.hapi);
+    const coverUrl = `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`;
+
+    await this._albumsService.editCoverAlbumById(albumId, coverUrl);
 
     const response = h.response({
       status: 'success',
+      message: 'Sampul berhasil diunggah',
       data: {
-        fileLocation: `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`,
+        fileLocation: coverUrl,
       },
     });
     response.code(201);
