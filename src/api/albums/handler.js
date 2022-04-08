@@ -46,6 +46,7 @@ class AlbumHandler {
   }
 
   async getAlbumByIdHandler(request) {
+    console.log(`${new Date()} - ${request.raw.req.url}`);
     const { id } = request.params;
     const album = await this._albumsService.getAlbumById(id, this._albumEntity, this._songEntity);
 

@@ -218,12 +218,29 @@ const init = async () => {
 
     if (response instanceof ClientError) {
       // membuat response baru dari response toolkit sesuai kebutuhan error handling
-      const newResponse = h.response({
+      console.log(response);
+      return h.response({
         status: 'fail',
         message: response.message,
-      });
-      newResponse.code(response.statusCode);
-      return newResponse;
+      }).code(response.statusCode);
+    }
+
+    if (response instanceof Error) {
+      // kondisi ini digunakan untuk menangkap error yang tidak secara manual di-throw
+      const { statusCode, payload } = response.output;
+      switch (statusCode) {
+        case 401:
+          return h.response(payload).code(401);
+        case 404:
+          return h.response(payload).code(404);
+        default:
+          console.log(response);
+          return h.response({
+            status: 'error',
+            error: payload.error,
+            message: payload.message,
+          }).code(500);
+      }
     }
 
     // jika bukan ClientError, lanjutkan dengan response sebelumnya (tanpa terintervensi)
