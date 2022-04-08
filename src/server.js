@@ -3,13 +3,19 @@ require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const path = require('path');
+const Inert = require('@hapi/inert');
 const ClientError = require('./exceptions/ClientError');
+
+// cache
+const CacheService = require('./services/redis/CacheService');
 
 // album
 const AlbumService = require('./services/postgres/AlbumService');
 const AlbumsValidator = require('./validator/albums');
 const albums = require('./api/albums');
 const albumEntity = require('./entity/Album');
+const LikesService = require('./services/postgres/LikeService');
 
 // songs
 const SongService = require('./services/postgres/SongService');
@@ -41,13 +47,26 @@ const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./services/postgres/CollaborationsService');
 const CollaborationsValidator = require('./validator/collaborations');
 
+// Exports
+const _exports = require('./api/exports');
+const ProducerService = require('./services/rabbitmq/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
+// uploads
+const uploads = require('./api/uploads');
+const StorageService = require('./services/storage/StorageService');
+const UploadsValidator = require('./validator/uploads');
+
 const init = async () => {
+  const cacheService = new CacheService();
   const collaborationsService = new CollaborationsService();
   const playlistsService = new PlaylistsService(collaborationsService);
   const usersService = new UsersService(playlistsService);
   const albumService = new AlbumService();
+  const likeService = new LikesService(cacheService);
   const songService = new SongService();
   const authenticationService = new AuthenticationsService();
+  const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/images'));
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -62,6 +81,9 @@ const init = async () => {
   await server.register([
     {
       plugin: Jwt,
+    },
+    {
+      plugin: Inert,
     },
   ]);
 
@@ -117,6 +139,8 @@ const init = async () => {
         },
         service: {
           album: albumService,
+          like: likeService,
+          user: usersService,
         },
         validator: {
           album: AlbumsValidator,
@@ -166,6 +190,26 @@ const init = async () => {
         validator: CollaborationsValidator,
       },
     },
+    {
+      plugin: _exports,
+      options: {
+        service: {
+          exportService: ProducerService,
+          playlist: playlistsService,
+        },
+        validator: ExportsValidator,
+      },
+    },
+    {
+      plugin: uploads,
+      options: {
+        service: {
+          storage: storageService,
+          album: albumService,
+        },
+        validator: UploadsValidator,
+      },
+    },
   ]);
 
   await server.ext('onPreResponse', (request, h) => {
@@ -174,12 +218,29 @@ const init = async () => {
 
     if (response instanceof ClientError) {
       // membuat response baru dari response toolkit sesuai kebutuhan error handling
-      const newResponse = h.response({
+      console.log(response);
+      return h.response({
         status: 'fail',
         message: response.message,
-      });
-      newResponse.code(response.statusCode);
-      return newResponse;
+      }).code(response.statusCode);
+    }
+
+    if (response instanceof Error) {
+      // kondisi ini digunakan untuk menangkap error yang tidak secara manual di-throw
+      const { statusCode, payload } = response.output;
+      switch (statusCode) {
+        case 401:
+          return h.response(payload).code(401);
+        case 404:
+          return h.response(payload).code(404);
+        default:
+          console.log(response);
+          return h.response({
+            status: 'error',
+            error: payload.error,
+            message: payload.message,
+          }).code(500);
+      }
     }
 
     // jika bukan ClientError, lanjutkan dengan response sebelumnya (tanpa terintervensi)

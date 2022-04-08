@@ -29,6 +29,7 @@ class SongHandler {
   }
 
   async getSongsHandler(request) {
+    console.log(`${new Date()} - ${request.raw.req.url}`);
     const payloadData = this._songEntity.mapModelToDBSong(request.query);
     const songs = await this._service.getSongs(payloadData, this._songEntity);
 
